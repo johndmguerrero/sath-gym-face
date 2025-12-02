@@ -1,0 +1,24 @@
+services:
+  face-attendance:
+    build: .
+    container_name: face-attendance-app
+    ports:
+      - "5001:5000"
+    volumes:
+      # Persist attendance data and trained models
+      - ./Attendance:/app/Attendance
+      - ./static/faces:/app/static/faces
+      - ./static/face_recognition_model.pkl:/app/static/face_recognition_model.pkl
+    # Camera is now browser-based (WebRTC) - works on any platform!
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - API_HOST=sath-gym-web-1
+      - API_PORT=80
+    networks:
+      - shared-network
+    restart: unless-stopped
+
+networks:
+  shared-network:
+    external: true

@@ -1,0 +1,11 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+*.md
+retinaface/
+mobileFacenet/
+.DS_Store
