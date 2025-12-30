@@ -1,162 +1,111 @@
 <!doctype html>
 <html lang="en">
 
-<style type='text/css'>
-    * {
-        padding: 0;
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma;
-    }
-
-    p {
-        text-align: center;
-        text-decoration: none;
-        text-transform: uppercase;
-    }
-
-    body {
-        background-image: url('/static/background.jpg');
-        background-size: cover;
-        font-family: Snell Roundhand, cursive;
-        margin-top: 40px;
-        height: 100vh;
-        padding: 0;
-        margin: 0;
-    }
-
-    h6 {
-        font-family: Snell Roundhand, cursive;
-    }
-
-    table {
-        border: 1px;
-        font-family: Snell Roundhand, cursive;
-        border-collapse: collapse;
-        width: 86%;
-        margin: auto;
-    }
-
-    td,
-    th {
-        border: 1px solid black !important;
-        font-family: Snell Roundhand, cursive;
-        padding: 5px;
-    }
-
-    tr:nth-child(even) {
-        background-color: #dddddd;
-    }
-
-    #status-message {
-        font-size: 18px;
-        font-weight: bold;
-        padding: 10px;
-        margin: 10px auto;
-        max-width: 640px;
-        border-radius: 8px;
-        text-align: center;
-    }
-
-    .status-idle { background-color: #e0e0e0; color: #333; }
-    .status-detecting { background-color: #fff3cd; color: #856404; }
-    .status-completed { background-color: #d4edda; color: #155724; }
-    .status-error { background-color: #f8d7da; color: #721c24; }
-    .status-capturing { background-color: #cce5ff; color: #004085; }
-
-    #video-container {
-        position: relative;
-        width: 640px;
-        margin: 0 auto;
-    }
-
-    #camera-video {
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-stop {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 30px;
-        font-size: 18px;
-        border-radius: 8px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    .btn-stop:hover {
-        background-color: #c82333;
-    }
-</style>
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
-    <title>Intelligent Attendance System Utilizing Facial Recognition Technology</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-    <div class='mt-3 text-center'>
-        <div id="video-container">
-            <video id="camera-video" width="640" height="480" autoplay playsinline></video>
+
+    <div class="container-fluid h-100" style="padding: 120px 0;">
+        <div class='row py-3 h-100'>
+            <div class="col-8">
+                <div id="video-container" class="video-container m-auto d-block position-relative" style="">
+                    <div id="status-message" class="status-idle">Camera ready. Click a button to start.</div>
+                    <video id="camera-video" class="mx-auto d-block" autoplay playsinline></video>
+                </div>
+            </div>
+
+            <div class="col-3">
+                <div class="sidebar-component d-flex flex-column justify-content-between h-100">
+
+                    <div class="clock-component">
+                        <div class="clock-container">
+                            <h1 class="title mb-4">Sath Gym</h1>
+                            <div class="time" id="clock">00:00:00</div>
+                            <div class="date" id="date">{{ datetoday2 }}</div>
+                        </div>
+                    </div>
+
+                    <div class="prc-card" id="prc-card">
+
+                        <div class="prc-progress-container">
+                            <div class="prc-progress-header">
+                                <span class="prc-progress-label">Auto-closing</span>
+                                <span class="prc-timer" id="prc-timer">10s</span>
+                            </div>
+                                <div class="prc-progress-bar">
+                                <div class="prc-progress-fill" id="prc-progress-fill"></div>
+                            </div>
+                        </div>
+                        <!-- Profile Header -->
+                        <div class="prc-profile-header">
+                            <div class="prc-avatar">JD</div>
+                            <div class="prc-profile-info">
+                                <div class="prc-profile-name">John Doe</div>
+                                <div class="prc-member-since">Member since Jan 2024</div>
+                            </div>
+                            <!-- <div class="prc-premium-badge">Premium</div> -->
+                        </div>
+
+                        <!-- Subscription Alert -->
+                        <!-- <div class="prc-alert d-none">
+                            <div class="prc-alert-icon">⚠</div>
+                            <div class="prc-alert-content">
+                                <div class="prc-alert-title">Subscription Expiring</div>
+                                <div class="prc-alert-text">Your membership expires in <strong>5 days</strong>. Renew to continue access.</div>
+                            </div>
+                        </div> -->
+
+                        <!-- Stats Grid -->
+                        <!-- <div class="prc-stats-grid d-none">
+                            <div class="prc-stat-card">
+                                <div class="prc-stat-value">47</div>
+                                <div class="prc-stat-label">Visits this month</div>
+                            </div>
+                            <div class="prc-stat-card">
+                                <div class="prc-stat-value">12</div>
+                                <div class="prc-stat-label">Day streak 🔥</div>
+                            </div>
+                        </div> -->
+                    </div>
+
+                    <div id="action-component">
+
+                        {% if register %}
+                            <form id="add-user-form" onsubmit="startAddUser(event)">
+                                <input type="text" id="newuserid" name='newuserid' value="{{ register }}" class="d-none" required>
+                                <button id="add-user-btn" type='submit' class='btn btn-primary'>
+                                    Register Face
+                                </button>
+                            </form>
+                        {% else %}
+                            <button id="attendance-btn" type='button' class='btn btn-primary' onclick="startAttendance()">Check-in</button>
+                        {% endif %}
+                    </div>
+                </div>
+            <!-- <div id="status-message" class="status-idle">Camera ready. Click a button to start.</div> -->
+            </div>
         </div>
-        <div id="status-message" class="status-idle">Camera ready. Click a button to start.</div>
-        <button id="stop-btn" class="btn-stop" style="display: none;" onclick="stopCapture()">Stop</button>
     </div>
 
-    <div class='mt-3 text-center'>
-        <h3 style="font-size: 22px;color:#0b4c61;">{{ datetoday2 }} | <span id="clock"></span></h3>
-    </div>
+    <div class="row text-center">
+        <div class="col">
 
-    {% if mess %}
-    <p class="text-center" style="color: red;font-size: 20px;">{{ mess }}</p>
-    {% endif %}
-
-    <div class="row text-center" style="padding: 20px;margin: 20px;">
-        <div class="col"
-            style="border-radius: 20px;padding: 0px;background-color:rgba(211, 211, 211, 0.911);margin:0px 10px 10px 10px;min-height: 400px;">
-            <h2 style="border-radius: 20px 20px 0px 0px;background-color: #0b4c61;color: white;padding: 10px;">Today's
-                Attendance <i class="material-icons">assignment</i></h2>
-            <button id="attendance-btn"
-                style="font-size: 24px;font-weight: bold;border-radius: 10px;width:490px;padding: 10px;margin-top: 30px;margin-bottom: 30px;"
-                type='button' class='btn btn-primary' onclick="startAttendance()">Take Attendance <i
-                    class="material-icons">beenhere</i></button>
-        </div>
-
-        <div class="col"
-            style="border-radius: 20px;padding: 0px;background-color:rgba(211, 211, 211, 0.911);margin:0px 10px 10px 10px;height: 400px;">
-            <form id="add-user-form" onsubmit="startAddUser(event)">
-                <h2 style="border-radius: 20px 20px 0px 0px;background-color: #0b4c61;color: white;padding: 10px;">Add
-                    New User <i class="material-icons">control_point_duplicate</i></h2>
-                <label style="font-size: 20px;"><b>Enter New User Name*</b></label>
-                <br>
-                <input type="text" id="newusername" name='newusername'
-                    style="font-size: 20px;margin-top:10px;margin-bottom:10px;" required>
-                <br>
-                <label style="font-size: 20px;"><b>Enter New User Id*</b></label>
-                <br>
-                <input type="text" id="newuserid" name='newuserid'
-                    style="font-size: 20px;margin-top:10px;margin-bottom:10px;" required>
-                <br>
-                <button id="add-user-btn" style="width: 232px;margin-top: 20px;font-size: 20px;" type='submit' class='btn btn-dark'>Add
-                    New User
-                </button>
-                <br>
-                <h5 style="padding: 25px;"><i>Total Users in Database: {{totalreg}}</i></h5>
-            </form>
         </div>
     </div>
 
     <script type="text/javascript">
         const video = document.getElementById('camera-video');
         const statusDiv = document.getElementById('status-message');
-        const stopBtn = document.getElementById('stop-btn');
         const attendanceBtn = document.getElementById('attendance-btn');
         const addUserBtn = document.getElementById('add-user-btn');
+        const progressBrd = document.getElementById('video-container');
 
         let stream = null;
         let captureInterval = null;
@@ -165,7 +114,13 @@
         // Clock
         const clockElement = document.getElementById('clock');
         function clock() {
-            clockElement.textContent = new Date().toString().slice(15, 24);
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Convert to 12-hour format, 0 becomes 12
+            clockElement.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
         }
         setInterval(clock, 1000);
 
@@ -176,10 +131,8 @@
                     video: { width: 640, height: 480, facingMode: 'user' }
                 });
                 video.srcObject = stream;
-                updateStatus('Camera ready. Click a button to start.', 'idle');
             } catch (err) {
                 console.error('Camera error:', err);
-                updateStatus('Camera access denied. Please allow camera access.', 'error');
             }
         }
 
@@ -191,9 +144,63 @@
         function setButtonsDisabled(disabled) {
             attendanceBtn.disabled = disabled;
             addUserBtn.disabled = disabled;
-            stopBtn.style.display = disabled ? 'inline-block' : 'none';
         }
 
+        async function replaceCard(customer_number) {
+            try {
+                const response = await fetch(`/members/${customer_number}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);
+
+                // Update profile name
+                const profileName = document.querySelector('.prc-profile-name');
+                if (profileName && data.fullname) {
+                    profileName.textContent = data.fullname;
+                }
+
+                // Update avatar (initials)
+                const avatar = document.querySelector('.prc-avatar');
+                if (avatar && data.nickname) {
+                    avatar.textContent = data.nickname;
+                }
+
+                // Update member since date
+                const memberSince = document.querySelector('.prc-member-since');
+                if (memberSince && data.created_at) {
+                    const date = new Date(data.created_at);
+                    const options = { year: 'numeric', month: 'short' };
+                    const formattedDate = date.toLocaleDateString('en-US', options);
+                    memberSince.textContent = `Member since ${formattedDate}`;
+                } else if (memberSince && data.member_since) {
+                    memberSince.textContent = `Member since ${data.member_since}`;
+                }
+
+                // Get the card element
+                const card = document.getElementById('prc-card');
+
+                // Show the card (in case it was hidden)
+                if (card) {
+                    card.style.display = 'block';
+                    card.classList.remove('prc-fade-out');
+                }
+
+                // Start countdown and refresh page after it completes
+                initCardCountdown('prc-card', 10);
+
+                // Refresh page after countdown duration + animation time
+                setTimeout(() => {
+                    location.reload();
+                }, 10500); // 10 seconds countdown + 500ms fade-out animation
+
+            } catch (error) {
+                console.error('Error fetching member data:', error);
+            }
+        }
         // Capture frame from video
         function captureFrame() {
             const canvas = document.createElement('canvas');
@@ -206,6 +213,8 @@
 
         // Start attendance mode
         async function startAttendance() {
+            const btnWrapper = document.getElementById('action-component');
+
             try {
                 const response = await fetch('/start');
                 const data = await response.json();
@@ -214,9 +223,8 @@
                     updateStatus(data.error, 'error');
                     return;
                 }
-
+                btnWrapper.remove();
                 currentMode = 'attendance';
-                setButtonsDisabled(true);
                 updateStatus('Look at the camera for attendance...', 'detecting');
 
                 // Start sending frames
@@ -229,11 +237,10 @@
                             body: JSON.stringify({ image: frame })
                         });
                         const result = await res.json();
-
                         if (result.status === 'completed') {
-                            updateStatus(result.message, 'completed');
                             stopCapture();
-                            setTimeout(() => location.reload(), 2000);
+                            updateStatus(result.message, 'completed');
+                            replaceCard(result.person)
                         } else if (result.status === 'detecting') {
                             updateStatus(result.message, 'detecting');
                         } else if (result.status === 'no_face') {
@@ -250,6 +257,8 @@
                 console.error('Start attendance error:', err);
                 updateStatus('Error starting attendance mode.', 'error');
             }
+
+
         }
 
         // Start add user mode
@@ -273,13 +282,10 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    updateStatus(data.error, 'error');
                     return;
                 }
 
                 currentMode = 'adduser';
-                setButtonsDisabled(true);
-                updateStatus(data.message, 'capturing');
 
                 // Start sending frames for face capture
                 captureInterval = setInterval(async () => {
@@ -308,7 +314,6 @@
 
             } catch (err) {
                 console.error('Start add user error:', err);
-                updateStatus('Error starting add user mode.', 'error');
             }
         }
 
@@ -326,14 +331,59 @@
             }
 
             currentMode = null;
-            setButtonsDisabled(false);
-            updateStatus('Camera ready. Click a button to start.', 'idle');
         }
+
+        function initCardCountdown(cardId, duration = 10) {
+            const card = document.getElementById(cardId);
+            const timer = document.getElementById('prc-timer');
+            const progressFill = document.getElementById('prc-progress-fill');
+
+            if (!card) return;
+
+            let timeLeft = duration;
+            const totalTime = duration;
+
+            const interval = setInterval(() => {
+                timeLeft -= 0.1;
+
+                // Update timer text
+                timer.textContent = `${Math.ceil(timeLeft)}s`;
+
+                // Update progress bar
+                const percentage = (timeLeft / totalTime) * 100;
+                progressFill.style.width = `${percentage}%`;
+
+                // When countdown ends
+                if (timeLeft <= 0) {
+                clearInterval(interval);
+                timer.textContent = '0s';
+                progressFill.style.width = '0%';
+
+                // Add fade-out class
+                card.classList.add('prc-fade-out');
+
+                // Remove element after animation
+                setTimeout(() => {
+                    card.remove();
+                }, 500);
+                }
+            }, 100);
+
+            return interval;
+        }
+
+        // Hide card initially on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const card = document.getElementById('prc-card');
+            if (card) {
+                card.style.display = 'none';
+            }
+        });
 
         // Initialize on page load
         window.onload = initCamera;
+
     </script>
-    <p>all rights reserved</p>
 </body>
 
 </html>

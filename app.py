@@ -13,6 +13,7 @@ import threading
 
 #### Defining Flask App
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 #### API configuration (for Docker networking)
 API_HOST = os.environ.get('API_HOST', 'localhost')
@@ -21,7 +22,7 @@ API_PORT = os.environ.get('API_PORT', '3000')
 
 #### Saving Date today in 2 different formats
 datetoday = date.today().strftime("%m_%d_%y")
-datetoday2 = date.today().strftime("%d-%B-%Y")
+datetoday2 = date.today().strftime("%A, %B %d, %Y")
 
 
 #### Initialize face detector (no camera - browser handles that)
@@ -124,7 +125,8 @@ import time
 @app.route('/')
 def home():
     names, rolls, times, l = extract_attendance()
-    return render_template('home.html', names=names, rolls=rolls, times=times, l=l, totalreg=totalreg(), datetoday2=datetoday2)
+    register_param = request.args.get('register', '')
+    return render_template('home.html', names=names, rolls=rolls, times=times, l=l, totalreg=totalreg(), datetoday2=datetoday2, register=register_param)
 
 
 #### Start attendance mode (returns JSON for browser-based flow)
@@ -295,6 +297,22 @@ def add_frame():
         add_user_id = None
         add_user_count = 0
 
+        # Send face scan update to API
+        try:
+            api_url = f'http://{API_HOST}:{API_PORT}/members/update_face_scan'
+            api_response = requests.post(
+                api_url,
+                json={'customer_number': saved_id},
+                timeout=10
+            )
+            print(f"API Response ({api_url}): {api_response.status_code}")
+            if api_response.status_code == 200:
+                print(f"Successfully updated face scan for {saved_id}")
+            else:
+                print(f"API Response Body: {api_response.text}")
+        except Exception as e:
+            print(f"API Error: {e}")
+
         return jsonify({
             'status': 'completed',
             'user_id': saved_id,
@@ -318,6 +336,21 @@ def status():
         'add_user_count': add_user_count
     })
 
+
+#### Proxy endpoint to get member data from external API
+@app.route('/members/<customer_number>', methods=['GET'])
+def get_member(customer_number):
+    try:
+        api_url = f'http://{API_HOST}:{API_PORT}/members/{customer_number}'
+        response = requests.get(api_url, timeout=5)
+
+        if response.status_code == 200:
+            return jsonify(response.json()), 200
+        else:
+            return jsonify({'error': 'Member not found'}), response.status_code
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching member data: {e}")
+        return jsonify({'error': 'Failed to fetch member data'}), 500
 
 
 #### Our main function which runs the Flask App
