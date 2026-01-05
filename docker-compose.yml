@@ -13,12 +13,12 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
-      - API_HOST=sath-gym-web-1
+      - API_HOST=sath-gym-web
       - API_PORT=80
     networks:
-      - shared-network
+      - sath-gym-network
     restart: unless-stopped
 
 networks:
-  shared-network:
+  sath-gym-network:
     external: true

@@ -23,10 +23,16 @@
 
             <div class="col-3">
                 <div class="sidebar-component d-flex flex-column justify-content-between h-100">
-
                     <div class="clock-component">
+                        <div class="company-logo row align-items-center">
+                            <div class="company-img col-3">
+                                <img src="{{ url_for('static', filename='company-log.jpeg') }}" alt="Logo">
+                            </div>
+                            <div class="company-title col-9">
+                                <h1 class="title">Sath Gym</h1>
+                            </div>
+                        </div>
                         <div class="clock-container">
-                            <h1 class="title mb-4">Sath Gym</h1>
                             <div class="time" id="clock">00:00:00</div>
                             <div class="date" id="date">{{ datetoday2 }}</div>
                         </div>
@@ -54,16 +60,16 @@
                         </div>
 
                         <!-- Subscription Alert -->
-                        <!-- <div class="prc-alert d-none">
+                        <div class="prc-alert d-none">
                             <div class="prc-alert-icon">⚠</div>
                             <div class="prc-alert-content">
                                 <div class="prc-alert-title">Subscription Expiring</div>
                                 <div class="prc-alert-text">Your membership expires in <strong>5 days</strong>. Renew to continue access.</div>
                             </div>
-                        </div> -->
+                        </div>
 
                         <!-- Stats Grid -->
-                        <!-- <div class="prc-stats-grid d-none">
+                        <div class="prc-stats-grid d-none">
                             <div class="prc-stat-card">
                                 <div class="prc-stat-value">47</div>
                                 <div class="prc-stat-label">Visits this month</div>
@@ -72,7 +78,7 @@
                                 <div class="prc-stat-value">12</div>
                                 <div class="prc-stat-label">Day streak 🔥</div>
                             </div>
-                        </div> -->
+                        </div>
                     </div>
 
                     <div id="action-component">
@@ -190,7 +196,7 @@
                 }
 
                 // Start countdown and refresh page after it completes
-                initCardCountdown('prc-card', 10);
+                initCardCountdown('prc-card', 7);
 
                 // Refresh page after countdown duration + animation time
                 setTimeout(() => {
@@ -301,7 +307,7 @@
                         if (result.status === 'completed') {
                             updateStatus(result.message, 'completed');
                             stopCapture();
-                            setTimeout(() => location.reload(), 2000);
+                            setTimeout(() => location.replace('/'), 2000);
                         } else if (result.status === 'capturing') {
                             updateStatus(result.message, 'capturing');
                         } else if (result.status === 'idle') {

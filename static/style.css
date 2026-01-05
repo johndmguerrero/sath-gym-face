@@ -294,3 +294,15 @@ tr:nth-child(even) {
     color: #888888;
     font-size: 14px;
 }
+
+.clock-container{
+    margin-top: 20px;
+}
+
+.company-logo img {
+    max-width: 100px;
+}
+
+.company-logo .title {
+    font-weight: 800;
+}
