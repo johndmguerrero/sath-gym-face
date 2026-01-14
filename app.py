@@ -38,6 +38,7 @@ add_user_id = None
 add_user_count = 0
 detected_person = None
 detection_start_time = None
+last_face_seen_time = None  # Track when we last saw a face
 
 
 #### If these directories don't exist, create them
@@ -70,6 +71,20 @@ def extract_faces(img):
 def identify_face(facearray):
     model = joblib.load('static/face_recognition_model.pkl')
     return model.predict(facearray)
+
+
+#### Identify face with confidence score
+def identify_face_with_confidence(facearray):
+    model = joblib.load('static/face_recognition_model.pkl')
+    # Get distances to nearest neighbors
+    distances, indices = model.kneighbors(facearray, n_neighbors=1)
+    prediction = model.predict(facearray)
+    # Return prediction and average distance (lower = more confident)
+    return prediction[0], distances[0][0]
+
+
+# Threshold for unknown face detection (adjust based on testing)
+UNKNOWN_THRESHOLD = 8000  # If distance > this, face is unknown
 
 
 #### A function which trains the model on all the faces available in faces folder
@@ -157,7 +172,7 @@ def stop():
 #### Process frame from browser for attendance
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
-    global detected_person, detection_start_time, attendance_mode
+    global detected_person, detection_start_time, attendance_mode, last_face_seen_time
 
     if not attendance_mode:
         return jsonify({'status': 'idle'})
@@ -173,27 +188,45 @@ def process_frame():
     faces = extract_faces(frame)
 
     if len(faces) == 0:
-        detected_person = None
-        detection_start_time = None
+        # Only reset if no face detected for more than 1.5 seconds
+        if last_face_seen_time and (time.time() - last_face_seen_time) > 1.5:
+            detected_person = None
+            detection_start_time = None
+            last_face_seen_time = None
         return jsonify({'status': 'no_face', 'message': 'No face detected'})
+
+    # Update last face seen time
+    last_face_seen_time = time.time()
 
     (x, y, w, h) = faces[0]
     face = cv2.resize(frame[y:y + h, x:x + w], (50, 50))
 
     try:
-        identified_person = identify_face(face.reshape(1, -1))[0]
+        identified_person, distance = identify_face_with_confidence(face.reshape(1, -1))
     except Exception as e:
         return jsonify({'error': f'Recognition error: {str(e)}'}), 500
 
-    if detected_person != identified_person:
-        # If a scan was already in progress (timer started) and person changed, halt the scan
+    # Check if face is unknown (distance too high)
+    is_unknown = distance > UNKNOWN_THRESHOLD
+
+    if is_unknown or detected_person != identified_person:
+        # If a scan was already in progress (timer started) and person changed or unknown appeared, halt the scan
         if detection_start_time is not None:
             attendance_mode = False
             detected_person = None
             detection_start_time = None
+            last_face_seen_time = None
+            message = 'Scanning halted: Unregistered person detected. Please try again.' if is_unknown else 'Scanning halted: Different person detected. Please try again.'
             return jsonify({
                 'status': 'person_changed',
-                'message': 'Scanning halted: Different person detected. Please try again.'
+                'message': message
+            })
+
+        # If unknown person tries to start a scan, reject immediately
+        if is_unknown:
+            return jsonify({
+                'status': 'unknown',
+                'message': 'Unregistered person. Please register first.'
             })
 
         # First detection of a person, start the timer
@@ -224,6 +257,7 @@ def process_frame():
         attendance_mode = False
         detected_person = None
         detection_start_time = None
+        last_face_seen_time = None
 
         return jsonify({
             'status': 'completed',

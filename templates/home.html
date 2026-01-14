@@ -255,6 +255,8 @@
                             stopCapture();
                             updateStatus(result.message, 'error');
                             setTimeout(() => location.reload(), 3000);
+                        } else if (result.status === 'unknown') {
+                            updateStatus(result.message, 'error');
                         } else if (result.status === 'idle') {
                             stopCapture();
                         }
