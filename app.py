@@ -185,6 +185,17 @@ def process_frame():
         return jsonify({'error': f'Recognition error: {str(e)}'}), 500
 
     if detected_person != identified_person:
+        # If a scan was already in progress (timer started) and person changed, halt the scan
+        if detection_start_time is not None:
+            attendance_mode = False
+            detected_person = None
+            detection_start_time = None
+            return jsonify({
+                'status': 'person_changed',
+                'message': 'Scanning halted: Different person detected. Please try again.'
+            })
+
+        # First detection of a person, start the timer
         detected_person = identified_person
         detection_start_time = time.time()
         return jsonify({
