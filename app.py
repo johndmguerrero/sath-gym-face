@@ -188,10 +188,19 @@ def process_frame():
     faces = extract_faces(frame)
 
     if len(faces) == 0:
-        # Only reset if no face detected for more than 1.5 seconds
-        if last_face_seen_time and (time.time() - last_face_seen_time) > 1.5:
+        # If scan was in progress (timer started) and face disappears, halt immediately
+        if detection_start_time is not None:
+            attendance_mode = False
             detected_person = None
             detection_start_time = None
+            last_face_seen_time = None
+            return jsonify({
+                'status': 'face_lost',
+                'message': 'Scanning halted: Face left the frame. Please try again.'
+            })
+        # Only reset idle state if no face detected for more than 1.5 seconds
+        if last_face_seen_time and (time.time() - last_face_seen_time) > 1.5:
+            detected_person = None
             last_face_seen_time = None
         return jsonify({'status': 'no_face', 'message': 'No face detected'})
 

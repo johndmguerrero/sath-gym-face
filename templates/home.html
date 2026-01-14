@@ -251,6 +251,10 @@
                             updateStatus(result.message, 'detecting');
                         } else if (result.status === 'no_face') {
                             updateStatus('No face detected. Please look at the camera.', 'idle');
+                        } else if (result.status === 'face_lost') {
+                            stopCapture();
+                            updateStatus(result.message, 'error');
+                            setTimeout(() => location.reload(), 3000);
                         } else if (result.status === 'person_changed') {
                             stopCapture();
                             updateStatus(result.message, 'error');
