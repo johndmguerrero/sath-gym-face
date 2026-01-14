@@ -84,7 +84,8 @@ def identify_face_with_confidence(facearray):
 
 
 # Threshold for unknown face detection (adjust based on testing)
-UNKNOWN_THRESHOLD = 8000  # If distance > this, face is unknown
+# Lower = stricter (rejects more), Higher = lenient (accepts more)
+UNKNOWN_THRESHOLD = 4000  # If distance > this, face is unknown
 
 
 #### A function which trains the model on all the faces available in faces folder
@@ -212,6 +213,7 @@ def process_frame():
 
     try:
         identified_person, distance = identify_face_with_confidence(face.reshape(1, -1))
+        print(f"[DEBUG] Detected: {identified_person}, Distance: {distance}")  # Check Railway logs
     except Exception as e:
         return jsonify({'error': f'Recognition error: {str(e)}'}), 500
 
