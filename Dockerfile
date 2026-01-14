@@ -28,8 +28,8 @@ COPY static/ static/
 # Create necessary directories
 RUN mkdir -p Attendance static/faces
 
-# Expose port
+# Expose port (Railway will override with PORT env var)
 EXPOSE 5000
 
-# Run the application
-CMD ["python", "app.py"]
+# Run with gunicorn for production
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 app:app

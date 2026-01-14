@@ -18,6 +18,7 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 #### API configuration (for Docker networking)
 API_HOST = os.environ.get('API_HOST', 'localhost')
 API_PORT = os.environ.get('API_PORT', '3000')
+API_PROTOCOL = 'https' if API_PORT == '443' else 'http'
 
 
 #### Saving Date today in 2 different formats
@@ -210,7 +211,7 @@ def process_frame():
     if elapsed >= 5:
         # Attendance confirmed - send API request
         try:
-            api_url = f'http://{API_HOST}:{API_PORT}/attendances'
+            api_url = f'{API_PROTOCOL}://{API_HOST}/attendances'
             api_response = requests.post(
                 api_url,
                 json={'attendances': {'customer_number': identified_person}},
@@ -310,7 +311,7 @@ def add_frame():
 
         # Send face scan update to API
         try:
-            api_url = f'http://{API_HOST}:{API_PORT}/members/update_face_scan'
+            api_url = f'{API_PROTOCOL}://{API_HOST}/members/update_face_scan'
             api_response = requests.post(
                 api_url,
                 json={'customer_number': saved_id},
@@ -352,7 +353,7 @@ def status():
 @app.route('/members/<customer_number>', methods=['GET'])
 def get_member(customer_number):
     try:
-        api_url = f'http://{API_HOST}:{API_PORT}/members/{customer_number}'
+        api_url = f'{API_PROTOCOL}://{API_HOST}/members/{customer_number}'
         response = requests.get(api_url, timeout=5)
 
         if response.status_code == 200:
@@ -366,4 +367,5 @@ def get_member(customer_number):
 
 #### Our main function which runs the Flask App
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
