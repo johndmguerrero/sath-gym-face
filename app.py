@@ -85,7 +85,7 @@ def identify_face_with_confidence(facearray):
 
 # Threshold for unknown face detection (adjust based on testing)
 # Lower = stricter (rejects more), Higher = lenient (accepts more)
-UNKNOWN_THRESHOLD = 3500  # If distance > this, face is unknown
+UNKNOWN_THRESHOLD = int(os.environ.get('UNKNOWN_THRESHOLD', '4500'))  # If distance > this, face is unknown
 
 
 #### A function which trains the model on all the faces available in faces folder
