@@ -93,6 +93,9 @@
                         {% else %}
                             <button id="attendance-btn" type='button' class='btn btn-primary' onclick="startAttendance()">Check-in</button>
                         {% endif %}
+                        <button id="stop-btn" type='button' class='btn btn-danger d-none' onclick="stopAndReload()">
+                            Stop Scan
+                        </button>
                     </div>
                 </div>
             <!-- <div id="status-message" class="status-idle">Camera ready. Click a button to start.</div> -->
@@ -111,6 +114,7 @@
         const statusDiv = document.getElementById('status-message');
         const attendanceBtn = document.getElementById('attendance-btn');
         const addUserBtn = document.getElementById('add-user-btn');
+        const stopBtn = document.getElementById('stop-btn');
         const progressBrd = document.getElementById('video-container');
 
         let stream = null;
@@ -148,8 +152,30 @@
         }
 
         function setButtonsDisabled(disabled) {
-            attendanceBtn.disabled = disabled;
-            addUserBtn.disabled = disabled;
+            if (attendanceBtn) attendanceBtn.disabled = disabled;
+            if (addUserBtn) addUserBtn.disabled = disabled;
+        }
+
+        function showStopButton() {
+            if (attendanceBtn) attendanceBtn.classList.add('d-none');
+            if (addUserBtn) addUserBtn.classList.add('d-none');
+            const addUserForm = document.getElementById('add-user-form');
+            if (addUserForm) addUserForm.classList.add('d-none');
+            if (stopBtn) stopBtn.classList.remove('d-none');
+        }
+
+        function hideStopButton() {
+            if (attendanceBtn) attendanceBtn.classList.remove('d-none');
+            if (addUserBtn) addUserBtn.classList.remove('d-none');
+            const addUserForm = document.getElementById('add-user-form');
+            if (addUserForm) addUserForm.classList.remove('d-none');
+            if (stopBtn) stopBtn.classList.add('d-none');
+        }
+
+        async function stopAndReload() {
+            await stopCapture();
+            updateStatus('Scan stopped.', 'idle');
+            setTimeout(() => location.reload(), 500);
         }
 
         async function replaceCard(customer_number) {
@@ -219,8 +245,6 @@
 
         // Start attendance mode
         async function startAttendance() {
-            const btnWrapper = document.getElementById('action-component');
-
             try {
                 const response = await fetch('/start');
                 const data = await response.json();
@@ -229,7 +253,7 @@
                     updateStatus(data.error, 'error');
                     return;
                 }
-                btnWrapper.remove();
+                showStopButton();
                 currentMode = 'attendance';
                 updateStatus('Look at the camera for attendance...', 'detecting');
 
@@ -301,6 +325,7 @@
                     return;
                 }
 
+                showStopButton();
                 currentMode = 'adduser';
 
                 // Start sending frames for face capture

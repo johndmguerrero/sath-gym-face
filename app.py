@@ -1,5 +1,6 @@
 import cv2
 import os
+import shutil
 from flask import Flask, Response, request, render_template, jsonify
 from datetime import date
 from datetime import datetime
@@ -255,7 +256,7 @@ def process_frame():
     if elapsed >= 5:
         # Attendance confirmed - send API request
         try:
-            api_url = f'{API_PROTOCOL}://{API_HOST}/attendances'
+            api_url = f'{API_PROTOCOL}://{API_HOST}:{API_PORT}/attendances'
             api_response = requests.post(
                 api_url,
                 json={'attendances': {'customer_number': identified_person}},
@@ -356,7 +357,7 @@ def add_frame():
 
         # Send face scan update to API
         try:
-            api_url = f'{API_PROTOCOL}://{API_HOST}/members/update_face_scan'
+            api_url = f'{API_PROTOCOL}://{API_HOST}:{API_PORT}/members/update_face_scan'
             api_response = requests.post(
                 api_url,
                 json={'customer_number': saved_id},
@@ -394,11 +395,64 @@ def status():
     })
 
 
+#### Unregister a face from the model
+@app.route('/unregister/<user_id>', methods=['DELETE'])
+def unregister(user_id):
+    userimagefolder = f'static/faces/{user_id}'
+
+    # Check if user exists
+    if not os.path.isdir(userimagefolder):
+        return jsonify({'error': f'User {user_id} not found'}), 404
+
+    try:
+        # Delete user's face images directory
+        shutil.rmtree(userimagefolder)
+        print(f"Deleted face images for {user_id}")
+
+        # Check if there are remaining users
+        remaining_users = os.listdir('static/faces')
+
+        if len(remaining_users) > 0:
+            # Retrain model without the deleted user
+            print("Retraining model without deleted user...")
+            train_model()
+            print("Model retrained successfully")
+        else:
+            # No users left, delete the model file
+            model_path = 'static/face_recognition_model.pkl'
+            if os.path.exists(model_path):
+                os.remove(model_path)
+                print("No users remaining, deleted model file")
+
+        # Notify external API about face removal
+        try:
+            api_url = f'{API_PROTOCOL}://{API_HOST}:{API_PORT}/members/remove_face_scan'
+            api_response = requests.post(
+                api_url,
+                json={'customer_number': user_id},
+                timeout=10
+            )
+            print(f"API Response ({api_url}): {api_response.status_code}")
+        except Exception as e:
+            print(f"API notification error (non-blocking): {e}")
+
+        return jsonify({
+            'status': 'success',
+            'user_id': user_id,
+            'message': f'Successfully unregistered {user_id}',
+            'remaining_users': len(remaining_users)
+        })
+
+    except Exception as e:
+        print(f"Error unregistering user: {e}")
+        return jsonify({'error': f'Failed to unregister user: {str(e)}'}), 500
+
+
 #### Proxy endpoint to get member data from external API
 @app.route('/members/<customer_number>', methods=['GET'])
 def get_member(customer_number):
     try:
-        api_url = f'{API_PROTOCOL}://{API_HOST}/members/{customer_number}'
+        api_url = f'{API_PROTOCOL}://{API_HOST}:{API_PORT}/members/{customer_number}'
         response = requests.get(api_url, timeout=5)
 
         if response.status_code == 200:
