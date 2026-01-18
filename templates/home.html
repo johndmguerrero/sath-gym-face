@@ -51,32 +51,38 @@
                         </div>
                         <!-- Profile Header -->
                         <div class="prc-profile-header">
-                            <div class="prc-avatar">JD</div>
+                            <div class="prc-avatar" id="prc-avatar">--</div>
                             <div class="prc-profile-info">
-                                <div class="prc-profile-name">John Doe</div>
-                                <div class="prc-member-since">Member since Jan 2024</div>
+                                <div class="prc-profile-name" id="prc-profile-name">--</div>
+                                <div class="prc-member-since" id="prc-member-since">--</div>
                             </div>
-                            <!-- <div class="prc-premium-badge">Premium</div> -->
+                            <div class="prc-status-badge" id="prc-status-badge"></div>
                         </div>
 
-                        <!-- Subscription Alert -->
-                        <div class="prc-alert d-none">
-                            <div class="prc-alert-icon">⚠</div>
+                        <!-- Member Details -->
+                        <div class="prc-member-details">
+                            <div class="prc-detail-row">
+                                <span class="prc-detail-label">Email</span>
+                                <span class="prc-detail-value" id="prc-email">--</span>
+                            </div>
+                            <div class="prc-detail-row">
+                                <span class="prc-detail-label">Member ID</span>
+                                <span class="prc-detail-value" id="prc-customer-number">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Attendance Status Message -->
+                        <div class="prc-attendance-status" id="prc-attendance-status">
+                            <div class="prc-attendance-icon" id="prc-attendance-icon"></div>
+                            <div class="prc-attendance-message" id="prc-attendance-message"></div>
+                        </div>
+
+                        <!-- Error Alert (for inactive users, etc.) -->
+                        <div class="prc-alert prc-alert-error d-none" id="prc-error-alert">
+                            <div class="prc-alert-icon">!</div>
                             <div class="prc-alert-content">
-                                <div class="prc-alert-title">Subscription Expiring</div>
-                                <div class="prc-alert-text">Your membership expires in <strong>5 days</strong>. Renew to continue access.</div>
-                            </div>
-                        </div>
-
-                        <!-- Stats Grid -->
-                        <div class="prc-stats-grid d-none">
-                            <div class="prc-stat-card">
-                                <div class="prc-stat-value">47</div>
-                                <div class="prc-stat-label">Visits this month</div>
-                            </div>
-                            <div class="prc-stat-card">
-                                <div class="prc-stat-value">12</div>
-                                <div class="prc-stat-label">Day streak 🔥</div>
+                                <div class="prc-alert-title" id="prc-error-title">Error</div>
+                                <div class="prc-alert-text" id="prc-error-text"></div>
                             </div>
                         </div>
                     </div>
@@ -178,57 +184,129 @@
             setTimeout(() => location.reload(), 500);
         }
 
+        function getInitials(firstName, lastName) {
+            const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+            const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+            return first + last || '--';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return null;
+            const date = new Date(dateString);
+            const options = { year: 'numeric', month: 'short' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function showCard(data, statusCode) {
+            console.log(statusCode)
+            const card = document.getElementById('prc-card');
+            const avatar = document.getElementById('prc-avatar');
+            const profileName = document.getElementById('prc-profile-name');
+            const memberSince = document.getElementById('prc-member-since');
+            const email = document.getElementById('prc-email');
+            const customerNumber = document.getElementById('prc-customer-number');
+            const statusBadge = document.getElementById('prc-status-badge');
+            const attendanceStatus = document.getElementById('prc-attendance-status');
+            const attendanceIcon = document.getElementById('prc-attendance-icon');
+            const attendanceMessage = document.getElementById('prc-attendance-message');
+            const errorAlert = document.getElementById('prc-error-alert');
+            const errorTitle = document.getElementById('prc-error-title');
+            const errorText = document.getElementById('prc-error-text');
+
+            // Reset card state
+            card.classList.remove('prc-card-success', 'prc-card-warning', 'prc-card-error');
+            errorAlert.classList.add('d-none');
+            attendanceStatus.classList.remove('d-none');
+
+            // Handle error cases
+            if (data.error) {
+                if (statusCode === 404) {
+                    // User not found
+                    card.classList.add('prc-card-error');
+                    avatar.textContent = '?';
+                    profileName.textContent = 'User Not Found';
+                    memberSince.textContent = '--';
+                    email.textContent = '--';
+                    customerNumber.textContent = '--';
+                    statusBadge.textContent = 'Not Found';
+                    statusBadge.className = 'prc-status-badge prc-badge-error';
+                    attendanceStatus.classList.add('d-none');
+                    errorAlert.classList.remove('d-none');
+                    errorTitle.textContent = 'User Not Found';
+                    errorText.textContent = 'This person is not registered in the system.';
+                } else if (statusCode === 422) {
+                    // User is inactive
+                    card.classList.add('prc-card-warning');
+                    avatar.textContent = '!';
+                    profileName.textContent = 'Inactive Member';
+                    memberSince.textContent = '--';
+                    email.textContent = '--';
+                    customerNumber.textContent = '--';
+                    statusBadge.textContent = 'Inactive';
+                    statusBadge.className = 'prc-status-badge prc-badge-warning';
+                    attendanceStatus.classList.add('d-none');
+                    errorAlert.classList.remove('d-none');
+                    errorTitle.textContent = 'Account Inactive';
+                    errorText.textContent = 'This membership is currently inactive. Please contact staff.';
+                }
+            } else {
+                // Success cases (200 or 201)
+                const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || '--';
+
+                avatar.textContent = getInitials(data.first_name, data.last_name);
+                profileName.textContent = fullName;
+                email.textContent = data.email || '--';
+                customerNumber.textContent = data.customer_number || '--';
+
+                // Format member since date
+                if (data.created_at) {
+                    memberSince.textContent = `Member since ${formatDate(data.created_at)}`;
+                } else if (data.member_since) {
+                    memberSince.textContent = `Member since ${data.member_since}`;
+                } else {
+                    memberSince.textContent = '--';
+                }
+
+                if (statusCode === 201) {
+                    // New attendance created
+                    card.classList.add('prc-card-success');
+                    statusBadge.textContent = 'Checked In';
+                    statusBadge.className = 'prc-status-badge prc-badge-success';
+                    attendanceIcon.textContent = '✓';
+                    attendanceIcon.className = 'prc-attendance-icon prc-icon-success';
+                    attendanceMessage.textContent = 'Attendance recorded successfully!';
+                } else if (statusCode === 200) {
+                    // Already checked in today
+                    card.classList.add('prc-card-warning');
+                    statusBadge.textContent = 'Already In';
+                    statusBadge.className = 'prc-status-badge prc-badge-warning';
+                    attendanceIcon.textContent = '✓';
+                    attendanceIcon.className = 'prc-attendance-icon prc-icon-warning';
+                    attendanceMessage.textContent = 'You have already checked in today.';
+                }
+            }
+
+            // Show the card
+            if (card) {
+                card.style.display = 'block';
+                card.classList.remove('prc-fade-out');
+            }
+
+            // Start countdown and refresh page after it completes
+            initCardCountdown('prc-card', 7);
+
+            // Refresh page after countdown duration + animation time
+            setTimeout(() => {
+                location.reload();
+            }, 7500);
+        }
+
         async function replaceCard(customer_number) {
             try {
                 const response = await fetch(`/members/${customer_number}`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const data = await response.json();
-                console.log(data);
-
-                // Update profile name
-                const profileName = document.querySelector('.prc-profile-name');
-                if (profileName && data.fullname) {
-                    profileName.textContent = data.fullname;
-                }
-
-                // Update avatar (initials)
-                const avatar = document.querySelector('.prc-avatar');
-                if (avatar && data.nickname) {
-                    avatar.textContent = data.nickname;
-                }
-
-                // Update member since date
-                const memberSince = document.querySelector('.prc-member-since');
-                if (memberSince && data.created_at) {
-                    const date = new Date(data.created_at);
-                    const options = { year: 'numeric', month: 'short' };
-                    const formattedDate = date.toLocaleDateString('en-US', options);
-                    memberSince.textContent = `Member since ${formattedDate}`;
-                } else if (memberSince && data.member_since) {
-                    memberSince.textContent = `Member since ${data.member_since}`;
-                }
-
-                // Get the card element
-                const card = document.getElementById('prc-card');
-
-                // Show the card (in case it was hidden)
-                if (card) {
-                    card.style.display = 'block';
-                    card.classList.remove('prc-fade-out');
-                }
-
-                // Start countdown and refresh page after it completes
-                initCardCountdown('prc-card', 7);
-
-                // Refresh page after countdown duration + animation time
-                setTimeout(() => {
-                    location.reload();
-                }, 10500); // 10 seconds countdown + 500ms fade-out animation
-
+                console.log('Member data:', data);
+                showCard(data, response.status);
             } catch (error) {
                 console.error('Error fetching member data:', error);
             }

@@ -306,3 +306,139 @@ tr:nth-child(even) {
 .company-logo .title {
     font-weight: 800;
 }
+
+/* Status Badge */
+.prc-status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.prc-badge-success {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.prc-badge-warning {
+    background-color: rgba(245, 166, 35, 0.15);
+    color: #f5a623;
+    border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.prc-badge-error {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Member Details */
+.prc-member-details {
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.prc-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.prc-detail-row:not(:last-child) {
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.prc-detail-label {
+    color: #888888;
+    font-size: 14px;
+}
+
+.prc-detail-value {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Attendance Status */
+.prc-attendance-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: #2a2a2a;
+}
+
+.prc-attendance-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.prc-icon-success {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.prc-icon-warning {
+    background-color: rgba(245, 166, 35, 0.15);
+    color: #f5a623;
+}
+
+.prc-attendance-message {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* Card State Variants */
+.prc-card-success {
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.prc-card-warning {
+    border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.prc-card-error {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Error Alert */
+.prc-alert-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+}
+
+.prc-alert-error .prc-alert-icon {
+    color: #ef4444;
+    width: 28px;
+    height: 28px;
+    background-color: rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.prc-alert-error .prc-alert-title {
+    color: #ef4444;
+}

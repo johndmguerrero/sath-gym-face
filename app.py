@@ -454,11 +454,7 @@ def get_member(customer_number):
     try:
         api_url = f'{API_PROTOCOL}://{API_HOST}:{API_PORT}/members/{customer_number}'
         response = requests.get(api_url, timeout=5)
-
-        if response.status_code == 200:
-            return jsonify(response.json()), 200
-        else:
-            return jsonify({'error': 'Member not found'}), response.status_code
+        return jsonify(response.json()), response.status_code
     except requests.exceptions.RequestException as e:
         print(f"Error fetching member data: {e}")
         return jsonify({'error': 'Failed to fetch member data'}), 500
